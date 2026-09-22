@@ -9,7 +9,7 @@ from .test_market_source import TestMarketDataSource
 
 
 def main() -> None:
-    webhook_url = get_discord_webhook_url()
+    webhook_url = ""
     database = Database()
 
     # 外部から受け取った商品データ
