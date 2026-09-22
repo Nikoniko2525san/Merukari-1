@@ -1,5 +1,4 @@
-import json
-import urllib.request
+import requests
 
 from .filter import ProductCandidate
 
@@ -8,6 +7,8 @@ def send_discord_notification(
     webhook_url: str,
     product: ProductCandidate,
 ) -> bool:
+    """条件を満たした商品をDiscordへ通知する。"""
+
     message = (
         "🔥 利益30%以上の商品を検出\n\n"
         f"商品名: {product.title}\n"
@@ -20,21 +21,17 @@ def send_discord_notification(
         f"URL: {product.url}"
     )
 
-    payload = json.dumps({
-        "content": message
-    }).encode("utf-8")
-
-    request = urllib.request.Request(
-        webhook_url,
-        data=payload,
-        method="POST",
-    )
-
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:
-            print(f"Discord HTTP status: {response.status}")
-            return 200 <= response.status < 300
+        response = requests.post(
+            webhook_url,
+            json={"content": message},
+            timeout=10,
+        )
 
-    except Exception as error:
+        print(f"Discord HTTP status: {response.status_code}")
+
+        return 200 <= response.status_code < 300
+
+    except requests.RequestException as error:
         print(f"Discord error: {error}")
         return False
