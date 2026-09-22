@@ -10,7 +10,8 @@ def fetch_all_keywords(
     """
     設定された全キーワードの商品を取得する。
 
-    同じ商品が複数キーワードに該当した場合は、
+    売り切れ商品を除外し、
+    同じ商品が複数キーワードに該当した場合は
     商品IDで重複を除外する。
     """
 
@@ -23,6 +24,9 @@ def fetch_all_keywords(
         )
 
         for listing in listings:
+            if listing.is_sold:
+                continue
+
             if listing.id not in results:
                 results[listing.id] = listing
 
@@ -33,18 +37,15 @@ def fetch_keyword(
     source: ListingSource,
     keyword: str,
 ) -> Iterable[SourceListing]:
-    """
-    1つのキーワードの商品を取得する。
-
-    現在のListingSourceには検索機能がないため、
-    TestListingSourceなどでは全商品を取得してから
-    キーワードで絞り込む。
-    """
+    """1つのキーワードの商品を取得する。"""
 
     count = 0
 
     for listing in source.fetch():
         if keyword.lower() not in listing.title.lower():
+            continue
+
+        if listing.is_sold:
             continue
 
         yield listing
