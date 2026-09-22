@@ -1,50 +1,39 @@
+from .card_parser import parse_card_title
 from .database import Database
+from .http_market_source import HttpMarketDataSource
 from .search_source import SearchListingSource
 from .source import SourceListing
-from .test_market_source import TestMarketDataSource
 
 
 def main() -> None:
-    # 大量の商品を想定したテストデータ
+    # トレカのテスト商品
     listings = [
         SourceListing(
-            id="item001",
-            title="iPhone 15 128GB",
-            purchase_price=50000,
-            shipping_size=60,
-            shipping_fee=750,
+            id="card001",
+            title="ポケモンカード SAR リザードンex 123/099",
+            purchase_price=5000,
+            shipping_size=30,
+            shipping_fee=230,
             is_large=False,
-            url="https://example.com/item001",
+            url="https://example.com/card001",
         ),
         SourceListing(
-            id="item002",
-            title="iPad 第10世代",
-            purchase_price=30000,
-            shipping_size=80,
-            shipping_fee=850,
+            id="card002",
+            title="遊戯王 青眼の白龍 レリーフ",
+            purchase_price=10000,
+            shipping_size=30,
+            shipping_fee=230,
             is_large=False,
-            url="https://example.com/item002",
-        ),
-        SourceListing(
-            id="item003",
-            title="ゲーミングPC",
-            purchase_price=80000,
-            shipping_size=120,
-            shipping_fee=1200,
-            is_large=True,
-            url="https://example.com/item003",
+            url="https://example.com/card002",
         ),
     ]
 
-    # 商品取得元
     source = SearchListingSource(listings)
 
-    # 相場データ（テスト）
-    market_source = TestMarketDataSource({
-        "iPhone 15 128GB": (70000, 75000, 78000),
-        "iPad 第10世代": (35000, 38000, 40000),
-        "ゲーミングPC": (120000, 130000, 140000),
-    })
+    # テスト用相場API
+    market_source = HttpMarketDataSource(
+        "http://localhost:8000/market"
+    )
 
     database = Database()
 
@@ -52,9 +41,17 @@ def main() -> None:
         all_listings = list(source.fetch())
 
         print(f"取得商品数: {len(all_listings)}件")
-        print("=" * 40)
+        print("=" * 50)
 
         for listing in all_listings:
+            card = parse_card_title(listing.title)
+
+            print(f"商品: {listing.title}")
+            print(f"ゲーム: {card.game}")
+            print(f"カード番号: {card.card_number or 'なし'}")
+            print(f"レアリティ: {card.rarity or 'なし'}")
+            print(f"種類: {card.product_type}")
+
             prices = tuple(
                 market_source.search_prices(
                     keyword=listing.title,
@@ -63,15 +60,18 @@ def main() -> None:
             )
 
             if not prices:
-                print(f"{listing.title}: 相場データなし")
+                print("相場データなし")
+                print("-" * 50)
                 continue
 
-            sale_price = int(sorted(prices)[len(prices) // 2])
+            sale_price = sorted(prices)[len(prices) // 2]
+
+            selling_fee = int(sale_price * 0.10)
 
             profit = (
                 sale_price
                 - listing.purchase_price
-                - int(sale_price * 0.10)
+                - selling_fee
                 - listing.shipping_fee
             )
 
@@ -81,22 +81,19 @@ def main() -> None:
                 else 0
             )
 
-            print(f"商品: {listing.title}")
             print(f"仕入れ価格: ¥{listing.purchase_price:,}")
             print(f"相場価格: ¥{sale_price:,}")
+            print(f"販売手数料: ¥{selling_fee:,}")
+            print(f"送料: ¥{listing.shipping_fee:,}")
             print(f"実利益: ¥{profit:,}")
             print(f"利益率: {profit_rate * 100:.1f}%")
 
-            if listing.is_large:
-                print("→ 大型商品のため除外")
-            elif listing.shipping_size > 100:
-                print("→ サイズ超過のため除外")
-            elif profit_rate >= 0.30:
+            if profit_rate >= 0.30:
                 print("→ ★ 通知対象")
             else:
                 print("→ 対象外")
 
-            print("-" * 40)
+            print("-" * 50)
 
     finally:
         database.close()
