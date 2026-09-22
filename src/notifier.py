@@ -1,4 +1,5 @@
 import json
+import urllib.error
 import urllib.request
 
 from .filter import ProductCandidate
@@ -37,6 +38,18 @@ def send_discord_notification(
 
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
+            print(f"Discord HTTP status: {response.status}")
             return 200 <= response.status < 300
-    except Exception:
+
+    except urllib.error.HTTPError as error:
+        print(f"Discord HTTP error: {error.code}")
+        print(error.read().decode("utf-8", errors="replace"))
+        return False
+
+    except urllib.error.URLError as error:
+        print(f"Discord connection error: {error.reason}")
+        return False
+
+    except Exception as error:
+        print(f"Discord error: {error}")
         return False
