@@ -1,11 +1,11 @@
 from .card_parser import parse_card_title
+from .http_market_source import HttpMarketDataSource
 from .search_batch import fetch_all_keywords
 from .search_source import SearchListingSource
 from .source import SourceListing
 
 
 def main() -> None:
-    # 大量処理のテスト用商品
     listings = [
         SourceListing(
             id="card001",
@@ -47,20 +47,65 @@ def main() -> None:
 
     source = SearchListingSource(listings)
 
+    market_source = HttpMarketDataSource(
+        "http://localhost:8000/market"
+    )
+
     results = fetch_all_keywords(source)
 
     print(f"大量検索結果: {len(results)}件")
-    print("=" * 50)
+    print("=" * 60)
 
     for listing in results:
         card = parse_card_title(listing.title)
 
+        prices = tuple(
+            market_source.search_prices(
+                keyword=listing.title,
+                limit=100,
+            )
+        )
+
         print(f"商品: {listing.title}")
         print(f"ゲーム: {card.game}")
         print(f"レアリティ: {card.rarity or 'なし'}")
-        print(f"種類: {card.product_type}")
         print(f"仕入れ価格: ¥{listing.purchase_price:,}")
-        print("-" * 50)
+
+        if not prices:
+            print("相場データ: なし")
+            print("→ 判定不可")
+            print("-" * 60)
+            continue
+
+        sale_price = sorted(prices)[len(prices) // 2]
+
+        selling_fee = int(sale_price * 0.10)
+
+        profit = (
+            sale_price
+            - listing.purchase_price
+            - selling_fee
+            - listing.shipping_fee
+        )
+
+        profit_rate = (
+            profit / listing.purchase_price
+            if listing.purchase_price > 0
+            else 0
+        )
+
+        print(f"相場価格: ¥{sale_price:,}")
+        print(f"販売手数料: ¥{selling_fee:,}")
+        print(f"送料: ¥{listing.shipping_fee:,}")
+        print(f"実利益: ¥{profit:,}")
+        print(f"利益率: {profit_rate * 100:.1f}%")
+
+        if profit_rate >= 0.30:
+            print("→ ★ 通知対象")
+        else:
+            print("→ 対象外")
+
+        print("-" * 60)
 
 
 if __name__ == "__main__":
