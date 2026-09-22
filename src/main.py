@@ -1,22 +1,37 @@
-import json
-import sys
-
 from .batch_processor import process_batch
 from .database import Database
-from .input_source import read_listings_from_stdin
-from .settings import get_discord_webhook_url
+from .source import SourceListing
 from .test_market_source import TestMarketDataSource
 
 
 def main() -> None:
-    webhook_url = ""
-    database = Database()
+    # テスト用の商品データ
+    listings = [
+        SourceListing(
+            id="test001",
+            title="テスト商品",
+            purchase_price=10000,
+            shipping_size=60,
+            shipping_fee=750,
+            is_large=False,
+            url="https://example.com/test001",
+        ),
+        SourceListing(
+            id="test002",
+            title="利益が少ない商品",
+            purchase_price=10000,
+            shipping_size=60,
+            shipping_fee=750,
+            is_large=False,
+            url="https://example.com/test002",
+        ),
+    ]
 
-    # 外部から受け取った商品データ
-    listings = read_listings_from_stdin()
-
-    # 現在はテスト用の相場データ
-    market_source = TestMarketDataSource({})
+    # テスト用のメルカリ相場
+    market_source = TestMarketDataSource({
+        "テスト商品": (18000, 19000, 20000),
+        "利益が少ない商品": (12000, 12500, 13000),
+    })
 
     market_prices = {}
 
@@ -30,15 +45,44 @@ def main() -> None:
 
         market_prices[listing.id] = prices
 
-    try:
-        notified_count = process_batch(
-            listings=listings,
-            market_prices=market_prices,
-            database=database,
-            discord_webhook_url=webhook_url,
-        )
+    database = Database()
 
-        print(f"通知成功: {notified_count}件")
+    try:
+        # Discordには送らず、判定だけテスト
+        for listing in listings:
+            prices = market_prices.get(listing.id, ())
+
+            sale_price = (
+                int(sorted(prices)[len(prices) // 2])
+                if prices
+                else 0
+            )
+
+            product_profit = (
+                sale_price
+                - listing.purchase_price
+                - int(sale_price * 0.10)
+                - listing.shipping_fee
+            )
+
+            profit_rate = (
+                product_profit / listing.purchase_price
+                if listing.purchase_price > 0
+                else 0
+            )
+
+            print(f"商品: {listing.title}")
+            print(f"仕入れ価格: ¥{listing.purchase_price:,}")
+            print(f"想定販売価格: ¥{sale_price:,}")
+            print(f"想定利益: ¥{product_profit:,}")
+            print(f"利益率: {profit_rate * 100:.1f}%")
+
+            if profit_rate >= 0.30:
+                print("→ 通知対象！")
+            else:
+                print("→ 対象外")
+
+            print("-" * 40)
 
     finally:
         database.close()
