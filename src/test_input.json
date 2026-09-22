@@ -1,0 +1,42 @@
+[
+  {
+    "id": "card001",
+    "title": "ポケモンカード SAR リザードンex 123/099",
+    "purchase_price": 5000,
+    "shipping_size": 30,
+    "shipping_fee": 230,
+    "is_large": false,
+    "url": "https://example.com/card001",
+    "is_sold": false
+  },
+  {
+    "id": "card002",
+    "title": "遊戯王 青眼の白龍 レリーフ",
+    "purchase_price": 10000,
+    "shipping_size": 30,
+    "shipping_fee": 230,
+    "is_large": false,
+    "url": "https://example.com/card002",
+    "is_sold": false
+  },
+  {
+    "id": "card003",
+    "title": "ポケモンカード AR ピカチュウ",
+    "purchase_price": 3000,
+    "shipping_size": 30,
+    "shipping_fee": 230,
+    "is_large": false,
+    "url": "https://example.com/card003",
+    "is_sold": true
+  },
+  {
+    "id": "card004",
+    "title": "遊戯王 シークレット ブラック・マジシャン",
+    "purchase_price": 8000,
+    "shipping_size": 30,
+    "shipping_fee": 230,
+    "is_large": false,
+    "url": "https://example.com/card004",
+    "is_sold": false
+  }
+]
