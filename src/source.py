@@ -13,16 +13,11 @@ class SourceListing:
     shipping_fee: int
     is_large: bool
     url: str = ""
+    is_sold: bool = False
 
 
 class ListingSource:
     """商品データ取得元の基本インターフェース。"""
 
     def fetch(self) -> Iterable[SourceListing]:
-        """
-        商品データを取得する。
-
-        実際の取得処理は、このクラスを継承した
-        データ取得元側で実装する。
-        """
         raise NotImplementedError
