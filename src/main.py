@@ -15,6 +15,7 @@ def main() -> None:
             shipping_fee=230,
             is_large=False,
             url="https://example.com/card001",
+            is_sold=False,
         ),
         SourceListing(
             id="card002",
@@ -24,6 +25,7 @@ def main() -> None:
             shipping_fee=230,
             is_large=False,
             url="https://example.com/card002",
+            is_sold=False,
         ),
         SourceListing(
             id="card003",
@@ -33,6 +35,7 @@ def main() -> None:
             shipping_fee=230,
             is_large=False,
             url="https://example.com/card003",
+            is_sold=True,
         ),
         SourceListing(
             id="card004",
@@ -42,6 +45,7 @@ def main() -> None:
             shipping_fee=230,
             is_large=False,
             url="https://example.com/card004",
+            is_sold=False,
         ),
     ]
 
@@ -53,7 +57,7 @@ def main() -> None:
 
     results = fetch_all_keywords(source)
 
-    print(f"大量検索結果: {len(results)}件")
+    print(f"出品中の商品: {len(results)}件")
     print("=" * 60)
 
     for listing in results:
@@ -67,6 +71,7 @@ def main() -> None:
         )
 
         print(f"商品: {listing.title}")
+        print(f"URL: {listing.url}")
         print(f"ゲーム: {card.game}")
         print(f"レアリティ: {card.rarity or 'なし'}")
         print(f"仕入れ価格: ¥{listing.purchase_price:,}")
@@ -78,7 +83,6 @@ def main() -> None:
             continue
 
         sale_price = sorted(prices)[len(prices) // 2]
-
         selling_fee = int(sale_price * 0.10)
 
         profit = (
