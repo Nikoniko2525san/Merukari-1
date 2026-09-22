@@ -6,14 +6,21 @@ def main() -> None:
         "http://localhost:8000/market"
     )
 
-    prices = api.search_prices(
-        keyword="iPhone 15",
-        limit=100,
-    )
+    test_keywords = [
+        "ポケモンカード SAR リザードンex 123/099",
+        "遊戯王 青眼の白龍 レリーフ",
+    ]
 
-    print("取得した相場価格:")
-    for price in prices:
-        print(f"¥{price:,}")
+    for keyword in test_keywords:
+        print(f"\n検索: {keyword}")
+
+        prices = api.search_prices(
+            keyword=keyword,
+            limit=100,
+        )
+
+        for price in prices:
+            print(f"¥{price:,}")
 
 
 if __name__ == "__main__":
