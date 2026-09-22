@@ -35,7 +35,9 @@ def send_discord_notification(
         },
         method="POST",
     )
-
+    print("Webhook URL length:", len(webhook_url))
+    print("Webhook URL start:", webhook_url[:30])
+    
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
             print(f"Discord HTTP status: {response.status}")
