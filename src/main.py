@@ -1,8 +1,13 @@
+import os
+
 from .card_parser import parse_card_title
 from .http_market_source import HttpMarketDataSource
+from .notifier import send_discord_notification
 from .search_batch import fetch_all_keywords
 from .search_source import SearchListingSource
 from .source import SourceListing
+from .filter import ProductCandidate
+from .shipping import ShippingInfo
 
 
 def main() -> None:
@@ -55,6 +60,11 @@ def main() -> None:
         "http://localhost:8000/market"
     )
 
+    webhook_url = os.getenv(
+        "DISCORD_WEBHOOK_URL",
+        "",
+    ).strip()
+
     results = fetch_all_keywords(source)
 
     print(f"出品中の商品: {len(results)}件")
@@ -83,29 +93,42 @@ def main() -> None:
             continue
 
         sale_price = sorted(prices)[len(prices) // 2]
-        selling_fee = int(sale_price * 0.10)
 
-        profit = (
-            sale_price
-            - listing.purchase_price
-            - selling_fee
-            - listing.shipping_fee
-        )
-
-        profit_rate = (
-            profit / listing.purchase_price
-            if listing.purchase_price > 0
-            else 0
+        product = ProductCandidate(
+            id=listing.id,
+            title=listing.title,
+            purchase_price=listing.purchase_price,
+            market_prices=prices,
+            shipping=ShippingInfo(
+                size=listing.shipping_size,
+                shipping_fee=listing.shipping_fee,
+                is_large=listing.is_large,
+            ),
+            url=listing.url,
         )
 
         print(f"相場価格: ¥{sale_price:,}")
-        print(f"販売手数料: ¥{selling_fee:,}")
+        print(f"販売手数料: ¥{int(sale_price * 0.10):,}")
         print(f"送料: ¥{listing.shipping_fee:,}")
-        print(f"実利益: ¥{profit:,}")
-        print(f"利益率: {profit_rate * 100:.1f}%")
+        print(f"実利益: ¥{product.profit:,}")
+        print(f"利益率: {product.profit_rate * 100:.1f}%")
 
-        if profit_rate >= 0.30:
+        if product.profit_rate >= 0.30:
             print("→ ★ 通知対象")
+
+            if webhook_url:
+                success = send_discord_notification(
+                    webhook_url,
+                    product,
+                )
+
+                if success:
+                    print("→ Discord通知成功")
+                else:
+                    print("→ Discord通知失敗")
+            else:
+                print("→ Discord Webhook未設定")
+
         else:
             print("→ 対象外")
 
