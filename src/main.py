@@ -44,12 +44,15 @@ def main() -> None:
 
         card = parse_card_title(listing.title)
 
+        market_fetched_at = datetime.now()
+
         prices = tuple(
-            market_source.search_prices(
-                keyword=listing.title,
-                limit=100,
-            )
+           market_source.search_prices(
+              keyword=listing.title,
+              limit=100,
+           )
         )
+        from datetime import datetime
 
         print("=" * 60)
         print(f"商品: {listing.title}")
@@ -73,6 +76,7 @@ def main() -> None:
                 is_large=listing.is_large,
             ),
             url=listing.url,
+            market_fetched_at=market_fetched_at,
         )
 
         print(f"相場価格: ¥{product.expected_sale_price:,}")
