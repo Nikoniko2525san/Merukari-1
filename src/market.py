@@ -1,13 +1,15 @@
 from dataclasses import dataclass
+from datetime import datetime
 from statistics import median
 from typing import Iterable
 
 
 @dataclass(frozen=True)
 class MarketPrice:
-    """取得した相場価格。"""
+    """取得時点の相場情報。"""
 
     prices: tuple[int, ...]
+    fetched_at: datetime
 
     @property
     def median_price(self) -> int:
@@ -24,7 +26,7 @@ class MarketPrice:
 def create_market_price(
     prices: Iterable[int],
 ) -> MarketPrice:
-    """有効な価格だけを相場データとして使用する。"""
+    """現在取得した価格から相場情報を作る。"""
 
     valid_prices = tuple(
         price
@@ -32,17 +34,16 @@ def create_market_price(
         if isinstance(price, int) and price > 0
     )
 
-    return MarketPrice(valid_prices)
+    return MarketPrice(
+        prices=valid_prices,
+        fetched_at=datetime.now(),
+    )
 
 
 def estimate_sale_price(
     prices: Iterable[int],
 ) -> int:
-    """
-    現在取得した価格から想定販売価格を計算する。
-
-    外れ値の影響を受けにくいよう中央値を使用する。
-    """
+    """取得した価格の中央値を現在相場として使用する。"""
 
     market = create_market_price(prices)
 
