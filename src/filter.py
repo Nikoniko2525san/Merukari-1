@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from datetime import datetime
 
-from .config import EXCLUDE_LARGE_ITEMS, MAX_SHIPPING_SIZE, MIN_PROFIT_RATE
 from .market import estimate_sale_price
 from .profit import calculate_net_profit, calculate_net_profit_rate
-from .shipping import ShippingInfo, is_acceptable_size
+from .shipping import ShippingInfo
+from .config import MIN_PROFIT_RATE
 
 
 @dataclass(frozen=True)
@@ -14,6 +15,7 @@ class ProductCandidate:
     market_prices: tuple[int, ...]
     shipping: ShippingInfo
     url: str = ""
+    market_fetched_at: datetime | None = None
 
     @property
     def expected_sale_price(self) -> int:
@@ -42,7 +44,7 @@ def is_good_candidate(product: ProductCandidate) -> bool:
     if product.purchase_price <= 0:
         return False
 
-    if not is_acceptable_size(product.shipping):
+    if not product.shipping:
         return False
 
     if product.expected_sale_price <= 0:
