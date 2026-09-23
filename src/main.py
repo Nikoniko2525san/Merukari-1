@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 from .card_parser import parse_card_title
 from .http_market_source import HttpMarketDataSource
@@ -52,7 +53,6 @@ def main() -> None:
               limit=100,
            )
         )
-        from datetime import datetime
 
         print("=" * 60)
         print(f"商品: {listing.title}")
