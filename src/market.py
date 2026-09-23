@@ -5,7 +5,7 @@ from typing import Iterable
 
 @dataclass(frozen=True)
 class MarketPrice:
-    """メルカリの相場情報。"""
+    """取得した相場価格。"""
 
     prices: tuple[int, ...]
 
@@ -21,8 +21,11 @@ class MarketPrice:
         return len(self.prices)
 
 
-def create_market_price(prices: Iterable[int]) -> MarketPrice:
-    """有効な価格だけを使って相場データを作る。"""
+def create_market_price(
+    prices: Iterable[int],
+) -> MarketPrice:
+    """有効な価格だけを相場データとして使用する。"""
+
     valid_prices = tuple(
         price
         for price in prices
@@ -32,11 +35,15 @@ def create_market_price(prices: Iterable[int]) -> MarketPrice:
     return MarketPrice(valid_prices)
 
 
-def estimate_sale_price(prices: Iterable[int]) -> int:
+def estimate_sale_price(
+    prices: Iterable[int],
+) -> int:
     """
-    メルカリ相場から想定販売価格を算出する。
+    現在取得した価格から想定販売価格を計算する。
 
-    現時点では中央値を使用する。
+    外れ値の影響を受けにくいよう中央値を使用する。
     """
+
     market = create_market_price(prices)
+
     return market.median_price
