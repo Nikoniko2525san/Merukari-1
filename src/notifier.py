@@ -14,6 +14,7 @@ def send_discord_notification(
         f"商品名: {product.title}\n"
         f"仕入れ価格: ¥{product.purchase_price:,}\n"
         f"現在相場: ¥{product.expected_sale_price:,}\n"
+        f"相場取得時刻: {product.market_fetched_at.strftime('%Y-%m-%d %H:%M:%S') if product.market_fetched_at else '不明'}\n"
         f"想定利益: ¥{product.profit:,}\n"
         f"利益率: {product.profit_rate * 100:.1f}%\n"
         f"発送サイズ: {product.shipping.size}\n"
