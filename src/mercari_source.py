@@ -4,21 +4,18 @@ from .source import ListingSource, SourceListing
 
 
 class MercariListingSource(ListingSource):
-    """メルカリの商品検索用のデータ取得クラス。"""
+    """メルカリの商品取得元。"""
 
-    def __init__(
-        self,
-        listings: Iterable[SourceListing] = (),
-    ):
-        self.listings = tuple(listings)
+    def __init__(self, fetcher):
+        self.fetcher = fetcher
 
     def fetch(
         self,
         keyword: str | None = None,
     ) -> Iterable[SourceListing]:
-        """取得済みの商品からキーワードで絞り込む。"""
+        listings = self.fetcher(keyword)
 
-        for listing in self.listings:
+        for listing in listings:
             if listing.is_sold:
                 continue
 
